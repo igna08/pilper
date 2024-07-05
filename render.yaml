@@ -19,4 +19,4 @@ setup:
   - poetry install --no-interaction
 
 run:
-  - poetry run python main.py
+  - poetry run python app.py
