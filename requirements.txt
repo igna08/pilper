@@ -5,4 +5,7 @@ flask-cors==4.0.1
 spacy==3.5.3
 beautifulsoup4==4.12.2
 gunicorn==22.0.0
+numpy==1.24.1
+cupy==11.0.0
+thinc==8.1.6
 
