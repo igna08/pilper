@@ -11,6 +11,10 @@ from bs4 import BeautifulSoup
 
 # Configuración inicial
 openai.api_key = os.getenv('OPENAI_API_KEY')  # Asegúrate de configurar tu variable de entorno
+access_token = os.getenv('ACCESS_TOKEN')
+verify_token = os.getenv('VERIFY_TOKEN')
+phone_number_id = os.getenv('PHONE_NUMBER_ID')
+WEBHOOK_VERIFY_TOKEN = os.getenv('WEBHOOK_VERIFY_TOKEN')
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 CORS(app, resources={r"/*": {"origins": "*"}})
@@ -19,11 +23,7 @@ app.config['DEBUG'] = True
 # Cargar el modelo de lenguaje en español
 nlp = spacy.load("es_core_news_md")
 
-# Configuración de tokens de acceso
-access_token = 'EAANXw0zqBXEBOZBXI62LT4LGoKpyJmbvk4v3ZClf3qa1UpWjkv9lytaoay3Fn3GOIRIUbxgvCNocZBIESWstLYRSzwxvx36RvRSdbwAmuODpNXwRDXGlNWDIIkkdsqHjiUEjq1qIJTsVG0JAgxalEhq1AgobOJMEQHdMs0bshB2zNPLxXwat8KYeZBHclq3HbZBaTXzmK0KxtMDgeKbKFq2cyYrAZD'
-verify_token = '12345'
-phone_number_id = '316436791556875'
-WEBHOOK_VERIFY_TOKEN= 12345
+
 @app.route("/")
 def home():
     return render_template("index.html")
