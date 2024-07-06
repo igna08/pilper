@@ -80,7 +80,7 @@ def handle_instagram_message(message):
     user_text = message['message']['text']
     response_text, products = process_user_input(user_text)
     if products:
-        send_instagram_message(user_id, products)
+        send_instagram_message(user_id, response_text, products)
     else:
         send_instagram_message(user_id, response_text)
 
@@ -89,7 +89,7 @@ def handle_messenger_message(message):
     user_text = message['message']['text']
     response_text, products = process_user_input(user_text)
     if products:
-        send_messenger_message(user_id, products)
+        send_messenger_message(user_id, response_text, products)
     else:
         send_messenger_message(user_id, response_text)
 
@@ -128,13 +128,13 @@ def send_whatsapp_message(user_id, text, products=None):
         }
     requests.post(url, headers=headers, json=data)
 
-def send_instagram_message(user_id, text_or_products):
+def send_instagram_message(user_id, text, products=None):
     url = f"https://graph.facebook.com/v19.0/me/messages"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
-    if isinstance(text_or_products, list):
+    if products:
         elements = [
             {
                 "title": product['title'],
@@ -147,7 +147,7 @@ def send_instagram_message(user_id, text_or_products):
                         "title": "Ver más"
                     }
                 ]
-            } for product in text_or_products
+            } for product in products
         ]
         data = {
             "recipient": {"id": user_id},
@@ -164,17 +164,17 @@ def send_instagram_message(user_id, text_or_products):
     else:
         data = {
             "recipient": {"id": user_id},
-            "message": {"text": text_or_products}
+            "message": {"text": text}
         }
     requests.post(url, headers=headers, json=data)
 
-def send_messenger_message(user_id, text_or_products):
+def send_messenger_message(user_id, text, products=None):
     url = f"https://graph.facebook.com/v19.0/me/messages"
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/json"
     }
-    if isinstance(text_or_products, list):
+    if products:
         elements = [
             {
                 "title": product['title'],
@@ -187,7 +187,7 @@ def send_messenger_message(user_id, text_or_products):
                         "title": "Ver más"
                     }
                 ]
-            } for product in text_or_products
+            } for product in products
         ]
         data = {
             "recipient": {"id": user_id},
@@ -204,9 +204,17 @@ def send_messenger_message(user_id, text_or_products):
     else:
         data = {
             "recipient": {"id": user_id},
-            "message": {"text": text_or_products}
+            "message": {"text": text}
         }
     requests.post(url, headers=headers, json=data)
+
+def process_user_input(user_text):
+    # Aquí va la lógica de procesamiento del texto del usuario
+    response_text = "Este es un texto de respuesta"  # Reemplaza esto con tu lógica
+    products = []  # Suponiendo que la lógica puede devolver una lista de productos o una lista vacía
+    
+    # Asegurarse de que siempre devolvemos dos valores
+    return response_text, products
 
 @app.route('/chat', methods=['POST'])
 def chatbot():
