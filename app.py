@@ -10,7 +10,7 @@ from bs4 import BeautifulSoup
 
 
 # Configuración inicial
-openai.api_key = 'sk-proj-eOIp24JaVTg2WR0KzNiNT3BlbkFJta0I3yIu5LTL5ZHwsMu1'  # Asegúrate de configurar tu variable de entorno
+openai.api_key = os.getenv('OPENAI_API_KEY')  # Asegúrate de configurar tu variable de entorno
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 CORS(app, resources={r"/*": {"origins": "*"}})
