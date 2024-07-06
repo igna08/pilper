@@ -1,22 +1,7 @@
-build:
-  env:
-    - PIP_DEFAULT_TIMEOUT=100
-    - PIP_DISABLE_PIP_VERSION_CHECK=1
-    - PIP_NO_CACHE_DIR=1
-    - POETRY_VERSION=1.1.13
-    - POETRY_HOME=/opt/poetry
-    - POETRY_VIRTUALENVS_IN_PROJECT=true
-    - POETRY_NO_INTERACTION=1
-    - PYSETUP_PATH=/opt/pysetup
-    - VENV_PATH=/opt/pysetup/.venv
-    - VIRTUAL_ENV=/opt/pysetup/.venv
-    - PATH=/opt/pysetup/.venv/bin:$PATH
-
-setup:
-  - export POETRY_VERSION=$(grep "^version" pyproject.toml | cut -d = -f 2 | tr -d '"')
-  - curl -sSL https://install.python-poetry.org | python3 -
-  - poetry config virtualenvs.in-project true
-  - poetry install --no-interaction
-
-run:
-  - poetry run python app.py
+services:
+  - type: web
+    name: my-flask-app
+    env: python
+    buildCommand: |
+      python -m venv .venv
+      source .venv/bin/activate
