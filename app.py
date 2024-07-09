@@ -7,6 +7,8 @@ from flask import Flask, request, jsonify, render_template, send_from_directory,
 from flask_cors import CORS
 import spacy
 from bs4 import BeautifulSoup
+import psycopg2
+from psycopg2 import sql
 
 
 # Configuración inicial
@@ -23,7 +25,53 @@ app.config['DEBUG'] = True
 # Cargar el modelo de lenguaje en español
 nlp = spacy.load("es_core_news_md")
 
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql//anyway_1_0_user:HC54z8E3mOWWi8RYFOUQ6wBHfFLmVI0q@dpg-cq68clss1f4s73du9nk0-a/anyway_1_0')
 
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
+
+def get_counts():
+    conn = get_db_connection()
+    c = conn.cursor()
+    today = datetime.now()
+
+    # Obtener conteo diario
+    c.execute('SELECT count FROM daily_counts WHERE date = %s', (today.strftime('%Y-%m-%d'),))
+    daily_count_row = c.fetchone()
+    daily_count = daily_count_row[0] if daily_count_row else 0
+
+    # Obtener conteo mensual
+    c.execute('SELECT count FROM monthly_counts WHERE year = %s AND month = %s', (today.year, today.month))
+    monthly_count_row = c.fetchone()
+    monthly_count = monthly_count_row[0] if monthly_count_row else 0
+
+    conn.close()
+    return daily_count, monthly_count
+
+def reset_monthly_counts():
+    conn = get_db_connection()
+    c = conn.cursor()
+    today = datetime.now()
+    c.execute('DELETE FROM monthly_counts WHERE year = %s AND month = %s', (today.year, today.month))
+    conn.commit()
+    conn.close()
+
+def increment_daily_count():
+    conn = get_db_connection()
+    c = conn.cursor()
+    today = datetime.now().strftime('%Y-%m-%d')
+    c.execute('INSERT INTO daily_counts (date, count) VALUES (%s, 1) ON CONFLICT (date) DO UPDATE SET count = daily_counts.count + 1', (today,))
+    conn.commit()
+    conn.close()
+
+def increment_monthly_count():
+    conn = get_db_connection()
+    c = conn.cursor()
+    today = datetime.now()
+    c.execute('INSERT INTO monthly_counts (year, month, count) VALUES (%s, %s, 1) ON CONFLICT (year, month) DO UPDATE SET count = monthly_counts.count + 1', (today.year, today.month))
+    conn.commit()
+    conn.close()
 @app.route("/")
 def home():
     return render_template("index.html")
