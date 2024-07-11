@@ -276,11 +276,12 @@ def chatbot():
 def process_user_input(user_input):
     if 'messages' not in session:
         session['messages'] = []
-        session['has_greeted'] = False  # Estado de saludo
+        session['has_greeted'] = True  # Estado de saludo
     
     # Si es la primera interacción y el saludo no ha sido dado
     if not session['has_greeted']:
         session['messages'].append({"role": "system", "content": (
+            "Cualquier pregunta especifica de un producto como precios, caracteristicas,variantes ,etc;responde al usuario que escriba el nombre del producto o Estoy buscando....., quiero un.... , necesito..... y que tu te pondras en acción para proveerle los mejores productos a su busqueda"
             "Hello! How can I assist you today?"
             "You are an assistant at Surcan, a Family company located in the heart of Apóstoles, city of Misiones with more than 40 years of experience in the construction field. "
             "Be kind and friendly. Somos una empresa Familiar ubicada en el corazón de Apóstoles, ciudad de Misiones con más de 40 años de experiencia en el rubro de la construcción. "
