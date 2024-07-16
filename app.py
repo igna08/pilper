@@ -289,7 +289,7 @@ def process_user_input(user_input):
         session['has_greeted'] = True  # Estado de saludo
     
     # Si es la primera interacción y el saludo no ha sido dado
-    if not session['has_greeted']:
+    if  session['has_greeted']:
         session['messages'].append({"role": "system", "content": (
             "Cualquier pregunta especifica de un producto como precios, caracteristicas,variantes ,etc;responde al usuario que escriba el nombre del producto o Estoy buscando....., quiero un.... , necesito..... y que tu te pondras en acción para proveerle los mejores productos a su busqueda"
             "Hello! How can I assist you today?"
