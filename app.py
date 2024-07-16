@@ -1,12 +1,14 @@
-from itertools import product
-import re
+from gc import get_count
+import uuid
+from flask import Flask, request, jsonify, render_template, send_from_directory, session, make_response
+from flask_cors import CORS
 import openai
 import os
 import requests
-from flask import Flask, request, jsonify, render_template, send_from_directory, session
-from flask_cors import CORS
-import spacy
 from bs4 import BeautifulSoup
+import spacy
+import sqlite3
+from datetime import datetime, timedelta
 import psycopg2
 from psycopg2 import sql
 
@@ -24,7 +26,15 @@ app.config['DEBUG'] = True
 
 # Cargar el modelo de lenguaje en español
 nlp = spacy.load("es_core_news_md")
-
+from itertools import product
+import re
+import openai
+import os
+import requests
+from flask import Flask, request, jsonify, render_template, send_from_directory, session
+from flask_cors import CORS
+import spacy
+from bs4 import BeautifulSoup
 DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql//anyway_1_0_user:HC54z8E3mOWWi8RYFOUQ6wBHfFLmVI0q@dpg-cq68clss1f4s73du9nk0-a/anyway_1_0')
 
 def get_db_connection():
