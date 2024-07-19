@@ -384,6 +384,7 @@ def search_product_on_surcansa(product_name):
 
         # Extraer información de cada producto
         products = []
+        base_url = "https://surcansa.com.ar"
         for product in product_elements:
             # Extraer imagen
             img_tag = product.find('img')
@@ -392,7 +393,7 @@ def search_product_on_surcansa(product_name):
             # Extraer nombre y enlace
             link_tag = product.find('a', class_='full-unstyled-link')
             product_name = link_tag.get_text(strip=True) if link_tag else 'No name'
-            product_link = link_tag['href'] if link_tag else 'No link'
+            product_link = f"{base_url}{link_tag['href']}" if link_tag and link_tag['href'].startswith('/') else link_tag['href']
 
             # Extraer precio
             price_tag = product.find('span', class_='price-item--regular')
@@ -406,6 +407,9 @@ def search_product_on_surcansa(product_name):
                 'precio': price
             }
             products.append(product)
+            
+            # Imprimir los detalles del producto en la consola
+            print(f"Producto: {product_name}, Precio: {price}, Enlace: {product_link}, Imagen: {img_url}")
         
         # Limitar a 5 productos
         if products:
@@ -432,9 +436,6 @@ def search_product_on_surcansa(product_name):
             return {"carousel": elements}
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
-
-    except requests.RequestException as e:
-        return {"response": f"Error al buscar productos: {str(e)}"}
     except Exception as e:
         return {"response": f"Ocurrió un error inesperado: {str(e)}"}
 
