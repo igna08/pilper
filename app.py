@@ -372,41 +372,44 @@ def search_product_on_surcansa(product_name):
     }
     
     try:
+        # Solicitar el contenido de la página
         response = requests.get(search_url, headers=headers)
-        response.raise_for_status()  # Raises an HTTPError for bad status codes
-
+        response.raise_for_status()  # Lanza un error en caso de un código de estado HTTP no exitoso
+        
+        # Crear un objeto BeautifulSoup
         soup = BeautifulSoup(response.text, 'html.parser')
-        productos = []
+
+        # Encontrar todos los elementos de productos en la página
+        product_elements = soup.find_all('li', class_='grid__item')
+
+        # Extraer información de cada producto
+        products = []
+        for product in product_elements:
+            # Extraer imagen
+            img_tag = product.find('img')
+            img_url = img_tag['src'] if img_tag else 'No image'
+            
+            # Extraer nombre y enlace
+            link_tag = product.find('a', class_='full-unstyled-link')
+            product_name = link_tag.get_text(strip=True) if link_tag else 'No name'
+            product_link = link_tag['href'] if link_tag else 'No link'
+
+            # Extraer precio
+            price_tag = product.find('span', class_='price-item--regular')
+            price = price_tag.get_text(strip=True) if price_tag else 'No price'
+
+            # Crear un diccionario para el producto
+            product = {
+                'titulo': product_name,
+                'link': product_link,
+                'imagen': img_url,
+                'precio': price
+            }
+            products.append(product)
         
-        for item in soup.select('.card__content'):
-            titulo_elem = item.select_one('.card__heading a')
-            precio_elem = item.select_one('.price-item--regular')
-            if titulo_elem and precio_elem:
-                titulo = titulo_elem.get_text(strip=True)
-                precio = precio_elem.get_text(strip=True)
-                link = 'https://surcansa.com.ar' + titulo_elem['href']
-                
-                # Extraer la URL de la imagen principal del producto
-                img_elem = item.select_one('img[src]')
-                if img_elem:
-                    img_src = img_elem['src']
-                    # Asegurarse de que la URL de la imagen sea completa
-                    if not img_src.startswith('http'):
-                        img_src = 'https:' + img_src
-                    # Añadir el parámetro 'width=150' para ajustar el tamaño de la imagen
-                    img_url = f"http:{img_src.split('?')[0]}?width=150"
-                else:
-                    img_url = "https://via.placeholder.com/150"  # Imagen predeterminada
-                
-                productos.append({
-                    'titulo': titulo,
-                    'precio': precio,
-                    'link': link,
-                    'imagen': img_url
-                })
-        
-        if productos:
-            productos = productos[:5]  # Limitar a 5 productos
+        # Limitar a 5 productos
+        if products:
+            productos = products[:5]
             elements = []
             for producto in productos:
                 elements.append({
@@ -429,10 +432,9 @@ def search_product_on_surcansa(product_name):
             return {"carousel": elements}
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
-    
-    except requests.RequestException as e:
-        return {"response": f"Error al buscar productos: {e}"}
 
+    except requests.RequestException as e:
+        return {"response": f"Error al buscar productos: {str(e)}"}
     except Exception as e:
         return {"response": f"Ocurrió un error inesperado: {str(e)}"}
 
