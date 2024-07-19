@@ -317,12 +317,12 @@
                 const leftArrow = document.createElement('button');
                 leftArrow.classList.add('carousel-arrow', 'left');
                 leftArrow.innerHTML = '&#9664;';
-                leftArrow.onclick = () => scrollCarousel(-1);
+                leftArrow.onclick = () => scrollCarousel(-1.1);
 
                 const rightArrow = document.createElement('button');
                 rightArrow.classList.add('carousel-arrow', 'right');
                 rightArrow.innerHTML = '&#9654;';
-                rightArrow.onclick = () => scrollCarousel(1);
+                rightArrow.onclick = () => scrollCarousel(1.1);
 
                 const carouselContainer = document.createElement('div');
                 carouselContainer.classList.add('carousel-container');
