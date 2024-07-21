@@ -278,22 +278,22 @@ def process_user_input(user_text):
 def chatbot():
     data = request.get_json()
     user_input = data.get('message')
+    
     if user_input:
         response_data = process_user_input(user_input)
         return jsonify(response_data)
+    
     return jsonify({'error': 'No message provided'}), 400
 
 def process_user_input(user_input):
     if 'messages' not in session:
         session['messages'] = []
-        session['has_greeted'] = True  # Estado de saludo
-    
+        session['has_greeted'] = False  # Estado de saludo
+
     # Si es la primera interacción y el saludo no ha sido dado
-    if  session['has_greeted']:
+    if not session['has_greeted']:
         session['messages'].append({"role": "system", "content": (
-            "Cualquier pregunta especifica de un producto como precios, caracteristicas,variantes ,etc;responde al usuario que escriba el nombre del producto o Estoy buscando....., quiero un.... , necesito..... y que tu te pondras en acción para proveerle los mejores productos a su busqueda"
-            "Hello! How can I assist you today?"
-            "You are an assistant at Surcan, a Family company located in the heart of Apóstoles, city of Misiones with more than 40 years of experience in the construction field. "
+            "Hello! How can I assist you today? You are an assistant at Surcan, a Family company located in the heart of Apóstoles, city of Misiones with more than 40 years of experience in the construction field. "
             "Be kind and friendly. Somos una empresa Familiar ubicada en el corazón de Apóstoles, ciudad de Misiones con más de 40 años de experiencia en el rubro de la construcción. "
             "Contamos con equipos capacitados y especializados en distintas áreas para poder asesorar a nuestros clientes de la mejor manera. "
             "Trabajamos con múltiples marcas, Nacionales como Internacionales con un amplio espectro de categorías como Ferreteria, Pintureria, Sanitarios, Cocinas, Baños, Cerámicos y Guardas, Aberturas, Construcción en Seco, Siderúrgicos y otros. "
@@ -322,6 +322,7 @@ def process_user_input(user_input):
         )})
         session['has_greeted'] = True  # Marcar que se ha saludado
     
+    # Agregar mensaje del usuario a la sesión
     session['messages'].append({"role": "user", "content": user_input})
     
     try:
@@ -330,7 +331,7 @@ def process_user_input(user_input):
             bot_message = search_product_on_surcansa(product_name)
         else:
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo-0125",
+                model="gpt-3.5-turbo",
                 messages=session['messages'],
                 temperature=0.01  # Ajusta la temperatura aquí
             )
@@ -341,6 +342,7 @@ def process_user_input(user_input):
     except Exception as e:
         print(f"Error processing input: {str(e)}")
         return {"response": "Lo siento, hubo un problema al procesar tu solicitud."}
+
 
 def is_product_search_intent(user_input):
     # Analiza el texto del usuario
