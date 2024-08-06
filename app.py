@@ -284,104 +284,6 @@ def process_user_input(user_text):
     return response_text, products
 
 
-@app.route('/chat', methods=['POST'])
-def chatbot():
-    data = request.get_json()
-    user_input = data.get('message')
-    if user_input:
-        response_data = process_user_input(user_input)
-        return jsonify(response_data)
-    return jsonify({'error': 'No message provided'}), 400
-
-
-
-def process_user_input(user_message):
-    global thread_id, assistant_id
-
-    # Verificar si la intención del usuario es buscar un producto
-    if is_product_search_intent(user_message):
-        product_name = extract_product_name(user_message)
-        bot_message = search_product_on_surcansa(product_name)
-        return {"response": bot_message}
-
-    # Crear un nuevo hilo con el assistant_id
-   # Crear un nuevo hilo para cada mensaje
-    new_thread = client.beta.threads.create(    )
-    thread_id = new_thread.id
-
-    # Envía el mensaje del usuario al nuevo hilo
-    # Envía el mensaje del usuario al nuevo hilo
-    
-    # Envía el mensaje del usuario al hilo existente
-
-    # Envía el mensaje del usuario al nuevo hilo
-    client.beta.threads.messages.create(
-        thread_id=thread_id,
-        role="user",
-        content=user_message,
-    )
-
-    # Ejecuta la conversación
-    run = client.beta.threads.runs.create(
-        assistant_id=assistant_id,
-        thread_id=thread_id
-    )
-    run_id = run.id
-
-    # Espera a que la ejecución se complete
-    while True:
-        run = client.beta.threads.runs.retrieve(
-            thread_id=thread_id,
-            run_id=run_id
-        )
-        if run.status == 'completed':
-            break
-        time.sleep(5)  # Espera 5 segundos antes de volver a verificar
-
-    # Recupera el mensaje de respuesta del asistente
-    output_messages = client.beta.threads.messages.list(
-        thread_id=thread_id
-    )
-
-    # Encuentra el último mensaje del asistente
-    last_assistant_message = None
-    for message in reversed(output_messages.data):
-        if message.role == "assistant":
-            last_assistant_message = message
-            break
-    
-    # Recupera el mensaje usando el ID del último mensaje del asistente
-    if last_assistant_message:
-        assistant_response = last_assistant_message.content[0].text.value
-    else:
-        assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
-
-    return {"response": assistant_response}
-
-
-def is_product_search_intent(user_input):
-    # Analiza el texto del usuario
-    doc = nlp(user_input.lower())
-    # Busca patrones en la frase que indiquen una intención de búsqueda
-    for token in doc:
-        if token.lemma_ in ["buscar", "necesitar", "querer"] and token.pos_ == "VERB":
-            return True
-    return False
-
-def extract_product_name(user_input):
-    # Analiza el texto del usuario
-    doc = nlp(user_input.lower())
-    product_name = []
-    is_searching = False
-    for token in doc:
-        # Detectar la frase de búsqueda
-        if token.lemma_ in ["buscar", "necesitar", "querer"] and token.pos_ == "VERB":
-            is_searching = True
-        # Extraer sustantivos después del verbo de búsqueda
-        if is_searching and token.pos_ in ["NOUN", "PROPN"]:
-            product_name.append(token.text)
-    return " ".join(product_name)
-
 def search_product_on_surcansa(product_name):
     search_url = f'https://surcansa.com.ar/search?q={product_name}'
     headers = {
@@ -405,30 +307,30 @@ def search_product_on_surcansa(product_name):
         for product in product_elements:
             # Extraer imagen
             img_tag = product.find('img')
-            img_url = img_tag['src'] if img_tag else 'No image'
+            img_url = img_tag['src'] if img_tag else 'https://via.placeholder.com/200x200.png?text=No+Image'
             
             # Extraer nombre y enlace
             link_tag = product.find('a', class_='full-unstyled-link')
-            product_name = link_tag.get_text(strip=True) if link_tag else 'No name'
+            product_name = link_tag.get_text(strip=True) if link_tag else 'Sin nombre'
             product_link = f"{base_url}{link_tag['href']}" if link_tag and link_tag['href'].startswith('/') else link_tag['href']
 
             # Extraer precio
             price_tag = product.find('span', class_='price-item--regular')
-            price = price_tag.get_text(strip=True) if price_tag else 'No price'
+            price = price_tag.get_text(strip=True) if price_tag else 'Sin precio'
 
             # Crear un diccionario para el producto
-            product = {
+            product_info = {
                 'titulo': product_name,
                 'link': product_link,
                 'imagen': img_url,
                 'precio': price
             }
-            products.append(product)
+            products.append(product_info)
             
             # Imprimir los detalles del producto en la consola
             print(f"Producto: {product_name}, Precio: {price}, Enlace: {product_link}, Imagen: {img_url}")
         
-   # Limitar a 5 productos
+        # Limitar a 5 productos
         if products:
             productos = products[:5]
             elements = []
@@ -450,7 +352,10 @@ def search_product_on_surcansa(product_name):
                         }
                     ]
                 })
-            return products
+            return {
+                "response": "",  # Para que el frontend sepa que debe mostrar el carrusel
+                "carousel": elements
+            }
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
     
