@@ -421,11 +421,11 @@ def search_product_on_surcansa(product_name):
             }
             products.append(product)
 
-        # Limitar a 5 productos
+  # Limitar a 5 productos
         if products:
-            limited_products = products[:5]  # Limitar a 5 productos
+            productos = products[:5]
             elements = []
-            for producto in limited_products:
+            for producto in productos:
                 elements.append({
                     "title": producto['titulo'],
                     "image_url": producto['imagen'],
@@ -443,11 +443,13 @@ def search_product_on_surcansa(product_name):
                         }
                     ]
                 })
-            return elements  # Retornar la lista de productos limitados
+            return products
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
-    except requests.exceptions.RequestException as e:
-        return {"error": str(e)}  # Manejo de errores en la solicitud
+    
+    except Exception as e:
+        return {"response": f"Ocurrió un error inesperado: {str(e)}"}
+
 
 
 @app.route('/favicon.ico')
