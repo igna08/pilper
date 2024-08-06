@@ -299,65 +299,60 @@ def process_user_input(user_message):
     global thread_id, assistant_id
 
     # Verificar si la intención del usuario es buscar un producto
-    # Verificar si la intención del usuario es buscar un producto
     if is_product_search_intent(user_message):
         product_name = extract_product_name(user_message)
-        bot_message = search_product_on_surcansa(product_name)
-        return {"response": bot_message}
-
-    # Crear un nuevo hilo con el assistant_id
-   # Crear un nuevo hilo para cada mensaje
-    new_thread = client.beta.threads.create(    )
-    thread_id = new_thread.id
-
-    # Envía el mensaje del usuario al nuevo hilo
-    # Envía el mensaje del usuario al nuevo hilo
-    
-    # Envía el mensaje del usuario al hilo existente
-
-    # Envía el mensaje del usuario al nuevo hilo
-    client.beta.threads.messages.create(
-        thread_id=thread_id,
-        role="user",
-        content=user_message,
-    )
-
-    # Ejecuta la conversación
-    run = client.beta.threads.runs.create(
-        assistant_id=assistant_id,
-        thread_id=thread_id
-    )
-    run_id = run.id
-
-    # Espera a que la ejecución se complete
-    while True:
-        run = client.beta.threads.runs.retrieve(
-            thread_id=thread_id,
-            run_id=run_id
-        )
-        if run.status == 'completed':
-            break
-        time.sleep(5)  # Espera 5 segundos antes de volver a verificar
-
-    # Recupera el mensaje de respuesta del asistente
-    output_messages = client.beta.threads.messages.list(
-        thread_id=thread_id
-    )
-
-    # Encuentra el último mensaje del asistente
-    last_assistant_message = None
-    for message in reversed(output_messages.data):
-        if message.role == "assistant":
-            last_assistant_message = message
-            break
-    
-    # Recupera el mensaje usando el ID del último mensaje del asistente
-    if last_assistant_message:
-        assistant_response = last_assistant_message.content[0].text.value
+        # Buscar producto y procesar el mensaje de resultado sin retornar
+        search_product_on_surcansa(product_name)
+        # No retornar nada aquí ya que el mensaje se maneja por otro medio
     else:
-        assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
+        # Crear un nuevo hilo con el assistant_id
+        new_thread = client.beta.threads.create()
+        thread_id = new_thread.id
 
-    return {"response": assistant_response}
+        # Envía el mensaje del usuario al nuevo hilo
+        client.beta.threads.messages.create(
+            thread_id=thread_id,
+            role="user",
+            content=user_message,
+        )
+
+        # Ejecuta la conversación
+        run = client.beta.threads.runs.create(
+            assistant_id=assistant_id,
+            thread_id=thread_id
+        )
+        run_id = run.id
+
+        # Espera a que la ejecución se complete
+        while True:
+            run = client.beta.threads.runs.retrieve(
+                thread_id=thread_id,
+                run_id=run_id
+            )
+            if run.status == 'completed':
+                break
+            time.sleep(5)  # Espera 5 segundos antes de volver a verificar
+
+        # Recupera el mensaje de respuesta del asistente
+        output_messages = client.beta.threads.messages.list(
+            thread_id=thread_id
+        )
+
+        # Encuentra el último mensaje del asistente
+        last_assistant_message = None
+        for message in reversed(output_messages.data):
+            if message.role == "assistant":
+                last_assistant_message = message
+                break
+        
+        # Recupera el mensaje usando el ID del último mensaje del asistente
+        if last_assistant_message:
+            assistant_response = last_assistant_message.content[0].text.value
+        else:
+            assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
+
+        return {"response": assistant_response}
+
 
 
 def is_product_search_intent(user_input):
