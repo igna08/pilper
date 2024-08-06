@@ -299,13 +299,8 @@ def process_user_input(user_message):
     global thread_id, assistant_id
 
     # Verificar si la intención del usuario es buscar un producto
-    if is_product_search_intent(user_message):
-        product_name = extract_product_name(user_message)
-        # Buscar producto y procesar el mensaje de resultado sin retornar
-        search_product_on_surcansa(product_name)
-        # No retornar nada aquí ya que el mensaje se maneja por otro medio
-    else:
-        # Crear un nuevo hilo con el assistant_id
+
+    if   # Crear un nuevo hilo con el assistant_id
         new_thread = client.beta.threads.create()
         thread_id = new_thread.id
 
@@ -352,8 +347,6 @@ def process_user_input(user_message):
             assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
 
         return {"response": assistant_response}
-
-
 
 def is_product_search_intent(user_input):
     # Analiza el texto del usuario
