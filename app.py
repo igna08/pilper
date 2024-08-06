@@ -1,8 +1,9 @@
 from gc import get_count
+import time
 import uuid
 from flask import Flask, request, jsonify, render_template, send_from_directory, session, make_response
 from flask_cors import CORS
-import openai
+from openai import OpenAI
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -14,7 +15,16 @@ from psycopg2 import sql
 
 
 # Configuración inicial
-openai.api_key = os.getenv('OPENAI_API_KEY')  # Asegúrate de configurar tu variable de entorno
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Utiliza el ID de la vector store existente desde la variable de entorno
+vector_store_id = os.getenv("VECTOR_STORE_ID")
+
+# Usar el asistente preexistente desde la variable de entorno
+assistant_id = os.getenv("ASSISTANT_ID")
+
+# Inicializar thread_id como None
+thread_id = None
 access_token = os.getenv('ACCESS_TOKEN')
 verify_token = os.getenv('VERIFY_TOKEN')
 phone_number_id = os.getenv('PHONE_NUMBER_ID')
@@ -284,69 +294,70 @@ def chatbot():
         return jsonify(response_data)
     return jsonify({'error': 'No message provided'}), 400
 
-def get_initial_context():
-    return (
-        "You are an assistant at Surcan, a Family company located in the heart of Apóstoles, city of Misiones with more than 40 years of experience in the construction field. "
-        "Be kind and friendly. Somos una empresa Familiar ubicada en el corazón de Apóstoles, ciudad de Misiones con más de 40 años de experiencia en el rubro de la construcción. "
-        "Contamos con equipos capacitados y especializados en distintas áreas para poder asesorar a nuestros clientes de la mejor manera. "
-        "Trabajamos con múltiples marcas, Nacionales como Internacionales con un amplio espectro de categorías como Ferreteria, Pintureria, Sanitarios, Cocinas, Baños, Cerámicos y Guardas, Aberturas, Construcción en Seco, Siderúrgicos y otros. "
-        "Visítanos o contáctanos para contarnos sobre tus proyectos y poder elaborar un presupuesto en materiales realizado por nuestros especialistas en el tema. "
-        "Abierto de lunes a viernes de 7:30hs a 12hs y 15hs a 19hs. Sábados de 7:30hs a 12hs. Domingo Cerrado. "
-        "INFORMACIÓN DE CONTACTO ADICIONAL: 03758 42-2637, surcan.compras@gmail.com, surcan.ventas@gmail.com "
-        "Normalmente respondemos en el transcurso del día. "
-        "Política de privacidad: Surcan S.A. asume la responsabilidad y obligación de las normas de la privacidad respecto a todo tipo de transacción en sus sitios web y en las diferentes espacios y links que lo componen. "
-        "Surcan SA tiene como principal estandarte la protección de los datos personales de los usuarios y consumidores que accedan a sus plataformas informáticas, buscando resguardar sus datos como así también evitar violaciones normativas sea dentro de la ley de protección de datos personales, de la ley de defensa del consumidor, como en el manejo de dichos datos, evitar fraudes, estafas, sean estos de cualquier parte, incluso de terceros. "
-        "En dicho contexto todo Usuario o Consumidor que voluntariamente acceda a las páginas Web de Surcan SA o cualquiera de sus plataformas vinculadas declaran conocer de manera expresa las presentes políticas de privacidad. "
-        "De igual manera se comprometen a brindar sus datos, informaciones personales y todo otro dato relativo a la operatoria o vinculación con la misma de manera fidedigna y real y expresan y otorgan su consentimiento al uso por parte de SURCAN SA de dichos datos conforme se describe en esta Política de Privacidad. "
-        "No obstante, en caso de tener consultas o inquietudes al respecto, no dude en contactarnos al siguiente correo: surcan610@gmail.com. "
-        "Política de reembolso: Documentación a presentar para realizar el cambio: El cliente deberá presentar la documentación correspondiente de identidad. Sólo se realizarán devoluciones con el mismo método de pago de la compra. "
-        "Estado del Producto: El producto no puede estar probado y/o usado (salvo en caso de cambio por falla). Debe tener su embalaje original (incluyendo interiores), Pueden estar abiertos, pero encontrarse en perfectas condiciones, (salvo aquellos productos que tienen envases sellados como Pinturas). "
-        "El producto debe estar completo, con todos sus accesorios, manuales, certificados de garantía correspondientes y con sus productos bonificados que hayan estado asociados a la compra. No debe estar vencido. "
-        "Cambio por Falla: En caso de devolución/cambio por falla, el producto debe haberse utilizado correctamente. No se aceptarán devoluciones/cambios de constatarse mal uso del producto. "
-        "Para herramientas eléctricas, se realizarán cambios directos dentro de las 72 hs de entregado el producto. En caso de haber pasado el plazo establecido, el cliente se debe contactar directamente con el servicio técnico oficial del producto. "
-        "Plazos: Plazo Máximo: 15 días de corrido. Productos con vencimiento: 7 días de corrido. Los plazos para generar una devolución/cambio comienzan a correr a partir del día de la entrega del producto. "
-        "Política de envío. Zona de Envios y Tiempos de Entrega Zonas de Envio: Las zonas cubiertas para envios de compras realizas a través de nuestro e -commerce esta limitada a Misiones y Corrientes. "
-        "Los envios se realizaran através de Correo Argentino, Via Cargo, o nuestro servicio de Logística privada, de acuerdo al tipo de producto, lo seleccionado y disponible al momento de realizar el check out. "
-        "Tiempos de Entrega: El tiempo de entrega planificado será informado en el checkout de acuerdo al tipo de producto seleccionado. El mismo empezará a correr a partir de haberse hecho efectivo el pago. "
-        "El tiempo de aprobación del pago varía según el medio utilizado. Por último el tiempo de entrega varía dependiendo de la zona en la que usted se encuentre y del tipo de envío seleccionado. "
-        "Información Importante: Estamos trabajando de acuerdo a los protocolos de salud establecidos y por razones de público conocimiento contamos con personal reducido. Los tiempos de atención y entrega podrían verse afectados. Hacemos nuestro mayor esfuerzo. "
-        "INSTAGRAM: https://www.instagram.com/elijasurcan/ "
-        "Datos de Contacto: Teléfono: 03758 42-2637, Consultas: surcan.ventas@gmail.com"
+
+
+def process_user_input(user_message):
+    global thread_id, assistant_id
+
+    # Verificar si la intención del usuario es buscar un producto
+    if is_product_search_intent(user_message):
+        product_name = extract_product_name(user_message)
+        bot_message = search_product_on_surcansa(product_name)
+        return {"response": bot_message}
+
+    # Crear un nuevo hilo con el assistant_id
+   # Crear un nuevo hilo para cada mensaje
+    new_thread = client.beta.threads.create(    )
+    thread_id = new_thread.id
+
+    # Envía el mensaje del usuario al nuevo hilo
+    # Envía el mensaje del usuario al nuevo hilo
+    
+    # Envía el mensaje del usuario al hilo existente
+
+    # Envía el mensaje del usuario al nuevo hilo
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=user_message,
     )
 
-def process_user_input(user_input):
-    if 'messages' not in session:
-        session['messages'] = []
-        session['has_greeted'] = True  # Estado de saludo
+    # Ejecuta la conversación
+    run = client.beta.threads.runs.create(
+        assistant_id=assistant_id,
+        thread_id=thread_id
+    )
+    run_id = run.id
 
-    if not session['has_greeted']:
-        session['messages'].append({"role": "system", "content": "¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy? "})
-        session['has_greeted'] = True  # Marcar que se ha saludado
-    
-    # Agregar contexto a la conversación
-    if len(session['messages']) == 1:  # Solo agregar el contexto si es la primera interacción después del saludo
-        context = get_initial_context()
-        session['messages'].append({"role": "system", "content": context})
+    # Espera a que la ejecución se complete
+    while True:
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run_id
+        )
+        if run.status == 'completed':
+            break
+        time.sleep(5)  # Espera 5 segundos antes de volver a verificar
 
-    session['messages'].append({"role": "user", "content": user_input})
+    # Recupera el mensaje de respuesta del asistente
+    output_messages = client.beta.threads.messages.list(
+        thread_id=thread_id
+    )
+
+    # Encuentra el último mensaje del asistente
+    last_assistant_message = None
+    for message in reversed(output_messages.data):
+        if message.role == "assistant":
+            last_assistant_message = message
+            break
     
-    try:
-        if is_product_search_intent(user_input):
-            product_name = extract_product_name(user_input)
-            bot_message = search_product_on_surcansa(product_name)
-        else:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=session['messages'],
-                temperature=0.01  # Ajusta la temperatura aquí
-            )
-            bot_message = {"response": response.choices[0].message['content'].strip()}
-            session['messages'].append({"role": "assistant", "content": bot_message['response']})
-        
-        return bot_message
-    except Exception as e:
-        print(f"Error processing input: {str(e)}")
-        return {"response": "Lo siento, hubo un problema al procesar tu solicitud."}
+    # Recupera el mensaje usando el ID del último mensaje del asistente
+    if last_assistant_message:
+        assistant_response = last_assistant_message.content[0].text.value
+    else:
+        assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
+
+    return {"response": assistant_response}
 
 
 def is_product_search_intent(user_input):
