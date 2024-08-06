@@ -413,17 +413,15 @@ def search_product_on_surcansa(product_name):
             price = price_tag.get_text(strip=True) if price_tag else 'Sin precio'
 
             # Crear un diccionario para el producto
-            product_info = {
+ # Crear un diccionario para el producto
+            product = {
                 'titulo': product_name,
                 'link': product_link,
                 'imagen': img_url,
                 'precio': price
             }
-            products.append(product_info)
-            
-            # Imprimir los detalles del producto en la consola
-            print(f"Producto: {product_name}, Precio: {price}, Enlace: {product_link}, Imagen: {img_url}")
-        
+            products.append(product)
+
         # Limitar a 5 productos
         if products:
             productos = products[:5]
@@ -446,15 +444,9 @@ def search_product_on_surcansa(product_name):
                         }
                     ]
                 })
-            return {
-                "response": "",  # Para que el frontend sepa que debe mostrar el carrusel
-                "carousel": elements
-            }
+            return products
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
-    
-    except Exception as e:
-        return {"response": f"Ocurrió un error inesperado: {str(e)}"}
 
 
 @app.route('/favicon.ico')
