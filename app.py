@@ -413,7 +413,6 @@ def search_product_on_surcansa(product_name):
             price = price_tag.get_text(strip=True) if price_tag else 'Sin precio'
 
             # Crear un diccionario para el producto
- # Crear un diccionario para el producto
             product = {
                 'titulo': product_name,
                 'link': product_link,
@@ -424,9 +423,9 @@ def search_product_on_surcansa(product_name):
 
         # Limitar a 5 productos
         if products:
-            productos = products[:5]
+            limited_products = products[:5]  # Limitar a 5 productos
             elements = []
-            for producto in productos:
+            for producto in limited_products:
                 elements.append({
                     "title": producto['titulo'],
                     "image_url": producto['imagen'],
@@ -444,9 +443,11 @@ def search_product_on_surcansa(product_name):
                         }
                     ]
                 })
-            return products
+            return elements  # Retornar la lista de productos limitados
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
+    except requests.exceptions.RequestException as e:
+        return {"error": str(e)}  # Manejo de errores en la solicitud
 
 
 @app.route('/favicon.ico')
