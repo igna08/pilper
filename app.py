@@ -428,7 +428,7 @@ def search_product_on_surcansa(product_name):
             # Imprimir los detalles del producto en la consola
             print(f"Producto: {product_name}, Precio: {price}, Enlace: {product_link}, Imagen: {img_url}")
         
-        # Limitar a 5 productos
+   # Limitar a 5 productos
         if products:
             productos = products[:5]
             elements = []
@@ -450,9 +450,10 @@ def search_product_on_surcansa(product_name):
                         }
                     ]
                 })
-            return {"carousel": elements}
+            return products
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
+    
     except Exception as e:
         return {"response": f"Ocurrió un error inesperado: {str(e)}"}
 
