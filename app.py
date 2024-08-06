@@ -401,16 +401,16 @@ def search_product_on_surcansa(product_name):
         for product in product_elements:
             # Extraer imagen
             img_tag = product.find('img')
-            img_url = img_tag['src'] if img_tag else 'https://via.placeholder.com/200x200.png?text=No+Image'
+            img_url = img_tag['src'] if img_tag else 'No image'
             
             # Extraer nombre y enlace
             link_tag = product.find('a', class_='full-unstyled-link')
-            product_name = link_tag.get_text(strip=True) if link_tag else 'Sin nombre'
+            product_name = link_tag.get_text(strip=True) if link_tag else 'No name'
             product_link = f"{base_url}{link_tag['href']}" if link_tag and link_tag['href'].startswith('/') else link_tag['href']
 
             # Extraer precio
             price_tag = product.find('span', class_='price-item--regular')
-            price = price_tag.get_text(strip=True) if price_tag else 'Sin precio'
+            price = price_tag.get_text(strip=True) if price_tag else 'No price'
 
             # Crear un diccionario para el producto
             product = {
@@ -420,8 +420,11 @@ def search_product_on_surcansa(product_name):
                 'precio': price
             }
             products.append(product)
-
-  # Limitar a 5 productos
+            
+            # Imprimir los detalles del producto en la consola
+            print(f"Producto: {product_name}, Precio: {price}, Enlace: {product_link}, Imagen: {img_url}")
+        
+        # Limitar a 5 productos
         if products:
             productos = products[:5]
             elements = []
@@ -443,10 +446,9 @@ def search_product_on_surcansa(product_name):
                         }
                     ]
                 })
-            return products
+            return {"carousel": elements}
         else:
             return {"response": f"No encontré productos para '{product_name}'."}
-    
     except Exception as e:
         return {"response": f"Ocurrió un error inesperado: {str(e)}"}
 
