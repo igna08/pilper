@@ -17,8 +17,7 @@ from psycopg2 import sql
 # Configuración inicial
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Utiliza el ID de la vector store existente desde la variable de entorno
-vector_store_id = os.getenv("VECTOR_STORE_ID")
+
 
 # Usar el asistente preexistente desde la variable de entorno
 assistant_id = os.getenv("ASSISTANT_ID")
