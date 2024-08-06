@@ -284,6 +284,105 @@ def process_user_input(user_text):
     return response_text, products
 
 
+@app.route('/chat', methods=['POST'])
+def chatbot():
+    data = request.get_json()
+    user_input = data.get('message')
+    if user_input:
+        response_data = process_user_input(user_input)
+        return jsonify(response_data)
+    return jsonify({'error': 'No message provided'}), 400
+
+
+
+def process_user_input(user_message):
+    global thread_id, assistant_id
+
+    # Verificar si la intención del usuario es buscar un producto
+    # Verificar si la intención del usuario es buscar un producto
+    if is_product_search_intent(user_message):
+        product_name = extract_product_name(user_message)
+        bot_message = search_product_on_surcansa(product_name)
+        return {"response": bot_message}
+
+    # Crear un nuevo hilo con el assistant_id
+   # Crear un nuevo hilo para cada mensaje
+    new_thread = client.beta.threads.create(    )
+    thread_id = new_thread.id
+
+    # Envía el mensaje del usuario al nuevo hilo
+    # Envía el mensaje del usuario al nuevo hilo
+    
+    # Envía el mensaje del usuario al hilo existente
+
+    # Envía el mensaje del usuario al nuevo hilo
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=user_message,
+    )
+
+    # Ejecuta la conversación
+    run = client.beta.threads.runs.create(
+        assistant_id=assistant_id,
+        thread_id=thread_id
+    )
+    run_id = run.id
+
+    # Espera a que la ejecución se complete
+    while True:
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run_id
+        )
+        if run.status == 'completed':
+            break
+        time.sleep(5)  # Espera 5 segundos antes de volver a verificar
+
+    # Recupera el mensaje de respuesta del asistente
+    output_messages = client.beta.threads.messages.list(
+        thread_id=thread_id
+    )
+
+    # Encuentra el último mensaje del asistente
+    last_assistant_message = None
+    for message in reversed(output_messages.data):
+        if message.role == "assistant":
+            last_assistant_message = message
+            break
+    
+    # Recupera el mensaje usando el ID del último mensaje del asistente
+    if last_assistant_message:
+        assistant_response = last_assistant_message.content[0].text.value
+    else:
+        assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
+
+    return {"response": assistant_response}
+
+
+def is_product_search_intent(user_input):
+    # Analiza el texto del usuario
+    doc = nlp(user_input.lower())
+    # Busca patrones en la frase que indiquen una intención de búsqueda
+    for token in doc:
+        if token.lemma_ in ["buscar", "necesitar", "querer"] and token.pos_ == "VERB":
+            return True
+    return False
+
+def extract_product_name(user_input):
+    # Analiza el texto del usuario
+    doc = nlp(user_input.lower())
+    product_name = []
+    is_searching = False
+    for token in doc:
+        # Detectar la frase de búsqueda
+        if token.lemma_ in ["buscar", "necesitar", "querer"] and token.pos_ == "VERB":
+            is_searching = True
+        # Extraer sustantivos después del verbo de búsqueda
+        if is_searching and token.pos_ in ["NOUN", "PROPN"]:
+            product_name.append(token.text)
+    return " ".join(product_name)
+
 def search_product_on_surcansa(product_name):
     search_url = f'https://surcansa.com.ar/search?q={product_name}'
     headers = {
