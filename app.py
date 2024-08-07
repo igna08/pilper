@@ -295,19 +295,17 @@ def chatbot():
 
 
 
+
 def process_user_input(user_message):
-    global thread_id, assistant_id
+    global thread_id
 
-    # Verificar si la intención del usuario es buscar un producto
-    # Aquí debes agregar tu lógica de detección de intención
-
-    # Si se determina que es necesario crear un nuevo hilo
+    # Si thread_id es None, crea un nuevo hilo
     if thread_id is None:
-        # Crear un nuevo hilo con el assistant_id
-        new_thread = client.beta.threads.create()
-        thread_id = new_thread.id
-
-    # Envía el mensaje del usuario al hilo existente o recién creado
+        # Crear un nuevo hilo si es necesario
+        thread = client.beta.threads.create()
+        thread_id = thread.id
+    
+    # Envía el mensaje del usuario al hilo existente
     client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
@@ -331,7 +329,7 @@ def process_user_input(user_message):
             break
         time.sleep(5)  # Espera 5 segundos antes de volver a verificar
 
-    # Recupera el mensaje de respuesta del asistente
+    # Recupera los mensajes del hilo y obtiene el último mensaje del asistente
     output_messages = client.beta.threads.messages.list(
         thread_id=thread_id
     )
@@ -342,8 +340,8 @@ def process_user_input(user_message):
         if message.role == "assistant":
             last_assistant_message = message
             break
-
-    # Recupera el mensaje usando el ID del último mensaje del asistente
+    
+    # Recupera el contenido del último mensaje del asistente
     if last_assistant_message:
         assistant_response = last_assistant_message.content[0].text.value
     else:
