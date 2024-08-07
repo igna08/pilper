@@ -298,9 +298,7 @@ def chatbot():
 
 def process_user_input(user_message):
     # Crear un nuevo hilo para cada mensaje
-    new_thread = client.beta.threads.create(
-        assistant_id=assistant_id
-    )
+    new_thread = client.beta.threads.create()
     thread_id = new_thread.id
 
     # Envía el mensaje del usuario al nuevo hilo
