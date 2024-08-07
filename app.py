@@ -297,15 +297,13 @@ def chatbot():
 
 
 def process_user_input(user_message):
-    global thread_id
+    # Crear un nuevo hilo para cada mensaje
+    new_thread = client.beta.threads.create(
+        assistant_id=assistant_id
+    )
+    thread_id = new_thread.id
 
-    # Si thread_id es None, crea un nuevo hilo
-    if thread_id is None:
-        # Crear un nuevo hilo si es necesario
-        thread = client.beta.threads.create()
-        thread_id = thread.id
-    
-    # Envía el mensaje del usuario al hilo existente
+    # Envía el mensaje del usuario al nuevo hilo
     client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
@@ -329,7 +327,7 @@ def process_user_input(user_message):
             break
         time.sleep(5)  # Espera 5 segundos antes de volver a verificar
 
-    # Recupera los mensajes del hilo y obtiene el último mensaje del asistente
+    # Recupera el mensaje de respuesta del asistente
     output_messages = client.beta.threads.messages.list(
         thread_id=thread_id
     )
@@ -341,7 +339,7 @@ def process_user_input(user_message):
             last_assistant_message = message
             break
     
-    # Recupera el contenido del último mensaje del asistente
+    # Recupera el mensaje usando el ID del último mensaje del asistente
     if last_assistant_message:
         assistant_response = last_assistant_message.content[0].text.value
     else:
