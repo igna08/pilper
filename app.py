@@ -299,17 +299,22 @@ def process_user_input(user_message):
     global thread_id, assistant_id
 
     # Verificar si la intención del usuario es buscar un producto
+    # Aquí debes agregar tu lógica de detección de intención
 
-    if   # Crear un nuevo hilo con el assistant_id
-        new_thread = client.beta.threads.create()
+    # Si se determina que es necesario crear un nuevo hilo
+    if thread_id is None:
+        # Crear un nuevo hilo con el assistant_id
+        new_thread = client.beta.threads.create(assistant_id=assistant_id)
         thread_id = new_thread.id
 
-        # Envía el mensaje del usuario al nuevo hilo
-        client.beta.threads.messages.create(
-            thread_id=thread_id,
-            role="user",
-            content=user_message,
-        )
+    # Envía el mensaje del usuario al hilo existente o recién creado
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=user_message,
+    )
+
+    # Puedes agregar más lógica aquí para manejar la respuesta del asistente
 
         # Ejecuta la conversación
         run = client.beta.threads.runs.create(
