@@ -314,44 +314,42 @@ def process_user_input(user_message):
         content=user_message,
     )
 
-    # Puedes agregar más lógica aquí para manejar la respuesta del asistente
+    # Ejecuta la conversación
+    run = client.beta.threads.runs.create(
+        assistant_id=assistant_id,
+        thread_id=thread_id
+    )
+    run_id = run.id
 
-        # Ejecuta la conversación
-        run = client.beta.threads.runs.create(
-            assistant_id=assistant_id,
-            thread_id=thread_id
+    # Espera a que la ejecución se complete
+    while True:
+        run = client.beta.threads.runs.retrieve(
+            thread_id=thread_id,
+            run_id=run_id
         )
-        run_id = run.id
+        if run.status == 'completed':
+            break
+        time.sleep(5)  # Espera 5 segundos antes de volver a verificar
 
-        # Espera a que la ejecución se complete
-        while True:
-            run = client.beta.threads.runs.retrieve(
-                thread_id=thread_id,
-                run_id=run_id
-            )
-            if run.status == 'completed':
-                break
-            time.sleep(5)  # Espera 5 segundos antes de volver a verificar
+    # Recupera el mensaje de respuesta del asistente
+    output_messages = client.beta.threads.messages.list(
+        thread_id=thread_id
+    )
 
-        # Recupera el mensaje de respuesta del asistente
-        output_messages = client.beta.threads.messages.list(
-            thread_id=thread_id
-        )
+    # Encuentra el último mensaje del asistente
+    last_assistant_message = None
+    for message in reversed(output_messages.data):
+        if message.role == "assistant":
+            last_assistant_message = message
+            break
 
-        # Encuentra el último mensaje del asistente
-        last_assistant_message = None
-        for message in reversed(output_messages.data):
-            if message.role == "assistant":
-                last_assistant_message = message
-                break
-        
-        # Recupera el mensaje usando el ID del último mensaje del asistente
-        if last_assistant_message:
-            assistant_response = last_assistant_message.content[0].text.value
-        else:
-            assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
+    # Recupera el mensaje usando el ID del último mensaje del asistente
+    if last_assistant_message:
+        assistant_response = last_assistant_message.content[0].text.value
+    else:
+        assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
 
-        return {"response": assistant_response}
+    return {"response": assistant_response}
 
 def is_product_search_intent(user_input):
     # Analiza el texto del usuario
