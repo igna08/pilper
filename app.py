@@ -304,7 +304,7 @@ def process_user_input(user_message):
     # Si se determina que es necesario crear un nuevo hilo
     if thread_id is None:
         # Crear un nuevo hilo con el assistant_id
-        new_thread = client.beta.threads.create(assistant_id=assistant_id)
+        new_thread = client.beta.threads.create()
         thread_id = new_thread.id
 
     # Envía el mensaje del usuario al hilo existente o recién creado
