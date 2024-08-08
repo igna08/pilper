@@ -257,7 +257,7 @@
         <img src="https://img.icons8.com/ios-filled/50/ffffff/chat.png" alt="Icono del chatbot">
     </button>
 
-    <div id="chatbot-container">
+    <div id="chatbot-container" style="display: none;">
         <div id="chatbot-header">
             <div style="display: flex; align-items: center;">
                 <img src="https://i.postimg.cc/qRBBkzng/Captura-de-pantalla-2024-02-27-102418.png" alt="Logo">
@@ -291,6 +291,18 @@
             }
         }
 
+        // Función para formatear enlaces en formato [texto](url)
+        function formatearEnlaces(texto) {
+            const patronEnlace = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
+            return texto.replace(patronEnlace, '<a href="$2" target="_blank">$1</a>');
+        }
+
+        // Función para limpiar los textos de referencia 【...†...】
+        function limpiarReferencias(texto) {
+            const patronReferencia = /【[^】]+】/g;
+            return texto.replace(patronReferencia, '');
+        }
+
         async function sendMessage() {
             const message = document.getElementById('chatbot-input').value;
             if (message.trim() === "") return;
@@ -307,12 +319,12 @@
             typingIndicator.classList.add('typing-indicator');
             typingIndicator.innerHTML = '<span></span><span></span><span></span>';
             document.getElementById('chatbot-messages').appendChild(typingIndicator);
-            
+
             // Desplazar hacia abajo
             document.getElementById('chatbot-messages').scrollTop = document.getElementById('chatbot-messages').scrollHeight;
 
             try {
-                const response = await fetch('https://pilper-7.onrender.com/chat',{
+                const response = await fetch('https://pilper-7.onrender.com/chat', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -325,10 +337,13 @@
                 // Eliminar la animación de "escribiendo"
                 typingIndicator.remove();
 
+                // Limpiar las referencias y formatear enlaces en el mensaje del bot
+                const cleanMessage = limpiarReferencias(formatearEnlaces(data.response));
+
                 // Agregar mensaje del bot
                 const botMessageElement = document.createElement('div');
                 botMessageElement.classList.add('message', 'bot-message');
-                botMessageElement.innerText = data.response;
+                botMessageElement.innerHTML = cleanMessage;
                 document.getElementById('chatbot-messages').appendChild(botMessageElement);
 
                 // Desplazar hacia abajo
