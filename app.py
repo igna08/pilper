@@ -323,7 +323,7 @@ def process_user_input(user_message):
         )
         if run.status == 'completed':
             break
-        time.sleep(5)  # Espera 5 segundos antes de volver a verificar
+        time.sleep(3)  # Espera 5 segundos antes de volver a verificar
 
     # Recupera el mensaje de respuesta del asistente
     output_messages = client.beta.threads.messages.list(
