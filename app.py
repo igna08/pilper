@@ -297,7 +297,9 @@ def chatbot():
 
 
 # # Procesar la entrada del usuario
-process_user_input(user_message):
+
+# Procesar la entrada del usuario
+def process_user_input(user_input):
     # Revisa si ya existe un thread_id en la sesión
     if 'thread_id' not in session:
         print("[DEBUG] No se encontró thread_id en la sesión. Creando uno nuevo...")
