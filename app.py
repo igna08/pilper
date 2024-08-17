@@ -323,25 +323,19 @@ def process_user_input(user_message):
         )
         if run.status == 'completed':
             break
-        time.sleep(3)  # Espera 5 segundos antes de volver a verificar
+        time.sleep(3)  # Espera 3 segundos antes de volver a verificar
 
-    # Recupera el mensaje de respuesta del asistente
+    # Recupera los mensajes del hilo para obtener la respuesta del asistente
     output_messages = client.beta.threads.messages.list(
         thread_id=thread_id
     )
 
-    # Encuentra el último mensaje del asistente
-    last_assistant_message = None
+    # Imprime la respuesta del asistente
+    assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
     for message in reversed(output_messages.data):
         if message.role == "assistant":
-            last_assistant_message = message
+            assistant_response = message.content[0].text.value
             break
-    
-    # Recupera el mensaje usando el ID del último mensaje del asistente
-    if last_assistant_message:
-        assistant_response = last_assistant_message.content[0].text.value
-    else:
-        assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
 
     return {"response": assistant_response}
 
