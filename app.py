@@ -296,8 +296,7 @@ def chatbot():
 
 
 
-# Procesar la entrada del usuario
-# Procesar la entrada del usuario
+# # Procesar la entrada del usuario
 def process_user_input(user_message):
     # Revisa si ya existe un thread_id en la sesión
     if 'thread_id' not in session:
@@ -331,22 +330,17 @@ def process_user_input(user_message):
             break
         time.sleep(3)  # Espera 3 segundos antes de volver a verificar
 
-    # Recupera los mensajes del hilo para obtener la respuesta más reciente del asistente
+    # Recupera los mensajes del hilo para obtener la respuesta del asistente
     output_messages = client.beta.threads.messages.list(
         thread_id=thread_id
     )
 
-    # Busca el mensaje más reciente del asistente
-    assistant_response = None
-    for message in reversed(output_messages.data):
-        if message.role == "assistant":
-            assistant_response = message.content[0].text.value
-            break
-
-    if assistant_response is None:
+    # Usa el primer mensaje devuelto para la respuesta del asistente
+    if output_messages.data:
+        assistant_response = output_messages.data[0].content[0].text.value
+    else:
         assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
 
-    # Aquí es donde se envía la respuesta del asistente al usuario
     return assistant_response, []
 
 def is_product_search_intent(user_input):
