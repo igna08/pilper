@@ -298,6 +298,7 @@ def chatbot():
 
 # # Procesar la entrada del usuario
 
+
 # Procesar la entrada del usuario
 def process_user_input(user_input):
     # Revisa si ya existe un thread_id en la sesión
@@ -311,14 +312,14 @@ def process_user_input(user_input):
 
     thread_id = session['thread_id']
 
-    # Envía el mensaje del usuario al hilo existente
-    print(f"[DEBUG] Enviando mensaje del usuario al thread_id: {thread_id}")
+    # Envía la entrada del usuario al hilo existente
+    print(f"[DEBUG] Enviando entrada del usuario al thread_id: {thread_id}")
     client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
-        content=user_message,
+        content=user_input,
     )
-    print(f"[DEBUG] Mensaje del usuario enviado: {user_message}")
+    print(f"[DEBUG] Entrada del usuario enviada: {user_input}")
 
     # Ejecuta la conversación
     print("[DEBUG] Ejecutando conversación con el asistente...")
