@@ -297,28 +297,35 @@ def chatbot():
 
 
 # # Procesar la entrada del usuario
-def process_user_input(user_message):
+process_user_input(user_message):
     # Revisa si ya existe un thread_id en la sesión
     if 'thread_id' not in session:
-        # Crea un nuevo hilo si no existe
+        print("[DEBUG] No se encontró thread_id en la sesión. Creando uno nuevo...")
         new_thread = client.beta.threads.create()
         session['thread_id'] = new_thread.id
+        print(f"[DEBUG] Nuevo thread_id creado: {session['thread_id']}")
+    else:
+        print(f"[DEBUG] thread_id existente encontrado en la sesión: {session['thread_id']}")
 
     thread_id = session['thread_id']
 
     # Envía el mensaje del usuario al hilo existente
+    print(f"[DEBUG] Enviando mensaje del usuario al thread_id: {thread_id}")
     client.beta.threads.messages.create(
         thread_id=thread_id,
         role="user",
         content=user_message,
     )
+    print(f"[DEBUG] Mensaje del usuario enviado: {user_message}")
 
     # Ejecuta la conversación
+    print("[DEBUG] Ejecutando conversación con el asistente...")
     run = client.beta.threads.runs.create(
         assistant_id=assistant_id,
         thread_id=thread_id
     )
     run_id = run.id
+    print(f"[DEBUG] Run creado con run_id: {run_id}")
 
     # Espera a que la ejecución se complete
     while True:
@@ -326,20 +333,29 @@ def process_user_input(user_message):
             thread_id=thread_id,
             run_id=run_id
         )
+        print(f"[DEBUG] Verificando estado del run: {run.status}")
         if run.status == 'completed':
+            print("[DEBUG] Ejecución completada.")
             break
         time.sleep(3)  # Espera 3 segundos antes de volver a verificar
 
     # Recupera los mensajes del hilo para obtener la respuesta del asistente
+    print("[DEBUG] Recuperando mensajes del hilo...")
     output_messages = client.beta.threads.messages.list(
         thread_id=thread_id
     )
 
+    # Depuración de todos los mensajes obtenidos
+    print(f"[DEBUG] Mensajes recuperados: {output_messages.data}")
+
     # Usa el primer mensaje devuelto para la respuesta del asistente
     if output_messages.data:
+        print(f"[DEBUG] Primer mensaje del asistente encontrado: {output_messages.data[0]}")
         assistant_response = output_messages.data[0].content[0].text.value
+        print(f"[DEBUG] Respuesta del asistente: {assistant_response}")
     else:
         assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
+        print("[DEBUG] No se encontraron mensajes del asistente.")
 
     return assistant_response, []
 
