@@ -297,6 +297,7 @@ def chatbot():
 
 
 # Procesar la entrada del usuario
+# Procesar la entrada del usuario
 def process_user_input(user_message):
     # Revisa si ya existe un thread_id en la sesión
     if 'thread_id' not in session:
@@ -345,6 +346,7 @@ def process_user_input(user_message):
     if assistant_response is None:
         assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
 
+    # Aquí es donde se envía la respuesta del asistente al usuario
     return assistant_response, []
 
 def is_product_search_intent(user_input):
