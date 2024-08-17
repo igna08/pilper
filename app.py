@@ -360,7 +360,7 @@ def process_user_input(user_input):
         assistant_response = "Lo siento, no pude obtener una respuesta en este momento."
         print("[DEBUG] No se encontraron mensajes del asistente.")
 
-    return assistant_response, []
+    return {"response": assistant_response}
 
 def is_product_search_intent(user_input):
     # Analiza el texto del usuario
